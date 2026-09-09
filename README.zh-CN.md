@@ -16,7 +16,7 @@ RISC-V · ST7789 **172×320** 彩屏 · LVGL 8 · WiFi + SNTP
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%E2%80%A2%20Linux%20%E2%80%A2%20WSL-0ea5e9?style=flat-square)](.)
 [![Release](https://img.shields.io/badge/Release-v0.0.2-22d3ee?style=flat-square)](https://github.com/XEMOWO/ai-wb2-clock/releases)
 
-**[🇬🇧 English](README.md) · [🇨🇳 中文](README.zh-CN.md)**
+[![English](https://img.shields.io/badge/English-0ea5e9?style=for-the-badge)](README.md) [![中文](https://img.shields.io/badge/%E4%B8%AD%E6%96%87-ef4444?style=for-the-badge)](README.zh-CN.md)
 
 </div>
 
