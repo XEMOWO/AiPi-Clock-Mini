@@ -1,0 +1,121 @@
+=== Installing dependencies ===
+Requirement already satisfied: PySide6>=6.8 in C:\Users\lq950\AppData\Local\Programs\Python\Python313\Lib\site-packages (from -r requirements.txt (line 1)) (6.11.1)
+Requirement already satisfied: PySide6-Fluent-Widgets>=1.5.0 in C:\Users\lq950\AppData\Local\Programs\Python\Python313\Lib\site-packages (from -r requirements.txt (line 2)) (1.11.3)
+Requirement already satisfied: pyserial>=3.5 in C:\Users\lq950\AppData\Local\Programs\Python\Python313\Lib\site-packages (from -r requirements.txt (line 3)) (3.5)
+Requirement already satisfied: pyinstaller>=6.0 in C:\Users\lq950\AppData\Local\Programs\Python\Python313\Lib\site-packages (from -r requirements.txt (line 4)) (6.21.0)
+Requirement already satisfied: pillow>=10.0 in C:\Users\lq950\AppData\Local\Programs\Python\Python313\Lib\site-packages (from -r requirements.txt (line 5)) (12.3.0)
+Requirement already satisfied: shiboken6==6.11.1 in C:\Users\lq950\AppData\Local\Programs\Python\Python313\Lib\site-packages (from PySide6>=6.8->-r requirements.txt (line 1)) (6.11.1)
+Requirement already satisfied: PySide6_Essentials==6.11.1 in C:\Users\lq950\AppData\Local\Programs\Python\Python313\Lib\site-packages (from PySide6>=6.8->-r requirements.txt (line 1)) (6.11.1)
+Requirement already satisfied: PySide6_Addons==6.11.1 in C:\Users\lq950\AppData\Local\Programs\Python\Python313\Lib\site-packages (from PySide6>=6.8->-r requirements.txt (line 1)) (6.11.1)
+Requirement already satisfied: PySideSix-Frameless-Window>=0.8.0 in C:\Users\lq950\AppData\Local\Programs\Python\Python313\Lib\site-packages (from PySide6-Fluent-Widgets>=1.5.0->-r requirements.txt (line 2)) (0.8.2)
+Requirement already satisfied: darkdetect in C:\Users\lq950\AppData\Local\Programs\Python\Python313\Lib\site-packages (from PySide6-Fluent-Widgets>=1.5.0->-r requirements.txt (line 2)) (0.8.0)
+Requirement already satisfied: altgraph in C:\Users\lq950\AppData\Local\Programs\Python\Python313\Lib\site-packages (from pyinstaller>=6.0->-r requirements.txt (line 4)) (0.17.5)
+Requirement already satisfied: packaging>=22.0 in C:\Users\lq950\AppData\Local\Programs\Python\Python313\Lib\site-packages (from pyinstaller>=6.0->-r requirements.txt (line 4)) (26.2)
+Requirement already satisfied: pefile>=2022.5.30 in C:\Users\lq950\AppData\Local\Programs\Python\Python313\Lib\site-packages (from pyinstaller>=6.0->-r requirements.txt (line 4)) (2024.8.26)
+Requirement already satisfied: pyinstaller-hooks-contrib>=2026.6 in C:\Users\lq950\AppData\Local\Programs\Python\Python313\Lib\site-packages (from pyinstaller>=6.0->-r requirements.txt (line 4)) (2026.6)
+Requirement already satisfied: pywin32-ctypes>=0.2.1 in C:\Users\lq950\AppData\Local\Programs\Python\Python313\Lib\site-packages (from pyinstaller>=6.0->-r requirements.txt (line 4)) (0.2.3)
+Requirement already satisfied: setuptools>=42.0.0 in C:\Users\lq950\AppData\Local\Programs\Python\Python313\Lib\site-packages (from pyinstaller>=6.0->-r requirements.txt (line 4)) (83.0.0)
+Requirement already satisfied: pywin32 in C:\Users\lq950\AppData\Local\Programs\Python\Python313\Lib\site-packages (from PySideSix-Frameless-Window>=0.8.0->PySide6-Fluent-Widgets>=1.5.0->-r requirements.txt (line 2)) (312)
+
+[notice] A new release of pip is available: 26.1.2 -> 26.2.1
+[notice] To update, run: python.exe -m pip install --upgrade pip
+=== Building with PyInstaller ===
+111 INFO: PyInstaller: 6.21.0, contrib hooks: 2026.6
+112 INFO: Python: 3.13.14
+154 INFO: Platform: Windows-11-10.0.26200-SP0
+155 INFO: Python environment: C:\Users\lq950\AppData\Local\Programs\Python\Python313
+155 INFO: wrote C:\Users\lq950\Desktop\serial_tool\WB2SerialTool.spec
+
+[1;33mðŸ“¢ Tips:[0m QFluentWidgets Pro is now released. Click [1;96mhttps://qfluentwidgets.com/pages/pro[0m to learn more about it.
+
+832 INFO: Module search paths (PYTHONPATH):
+['C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Scripts\\pyinstaller.exe',
+ 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\python313.zip',
+ 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\DLLs',
+ 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib',
+ 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313',
+ 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages',
+ 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\win32',
+ 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\win32\\lib',
+ 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\pythonwin',
+ 'C:\\Users\\lq950\\Desktop\\serial_tool']
+1092 INFO: Appending 'datas' from .spec
+1095 INFO: checking Analysis
+1103 INFO: Building because excludes changed
+1104 INFO: Looking for Python shared library...
+1104 INFO: Using Python shared library: C:\Users\lq950\AppData\Local\Programs\Python\Python313\python313.dll
+1104 INFO: Running Analysis Analysis-00.toc
+1104 INFO: Target bytecode optimization level: 0
+1104 INFO: Initializing module dependency graph...
+1104 INFO: Initializing module graph hook caches...
+1115 INFO: Analyzing modules for base_library.zip ...
+1873 INFO: Processing standard module hook 'hook-encodings.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+2511 INFO: Processing standard module hook 'hook-math.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+2716 INFO: Processing standard module hook 'hook-heapq.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+3679 INFO: Processing standard module hook 'hook-pickle.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+4750 INFO: Caching module dependency graph...
+4779 INFO: Analyzing C:\Users\lq950\Desktop\serial_tool\main.py
+4785 INFO: Processing standard module hook 'hook-PySide6.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+4928 INFO: Processing standard module hook 'hook-shiboken6.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+5070 INFO: Processing standard module hook 'hook-PySide6.QtNetwork.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+6670 INFO: Processing standard module hook 'hook-PySide6.QtCore.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+9446 INFO: Processing standard module hook 'hook-PySide6.QtWidgets.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+12244 INFO: Processing standard module hook 'hook-PySide6.QtGui.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+35258 INFO: Processing standard module hook 'hook-platform.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+35285 INFO: Processing standard module hook 'hook-sysconfig.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+35289 INFO: Processing standard module hook 'hook-_ctypes.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+35370 INFO: Processing standard module hook 'hook-PySide6.QtXml.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+35648 INFO: Processing standard module hook 'hook-PySide6.QtSvg.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+36454 INFO: Processing standard module hook 'hook-PySide6.QtSvgWidgets.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+37004 INFO: Processing standard module hook 'hook-PIL.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+37095 INFO: Processing standard module hook 'hook-PIL.Image.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+37362 INFO: Processing standard module hook 'hook-xml.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+37378 INFO: Processing standard module hook 'hook-xml.etree.cElementTree.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+37522 INFO: Processing standard module hook 'hook-PIL.ImageFilter.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+38282 INFO: Analyzing hidden import 'qfluentwidgets.multimedia'
+38368 INFO: Processing standard module hook 'hook-PySide6.QtMultimedia.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+39479 INFO: Processing standard module hook 'hook-PySide6.QtMultimediaWidgets.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+39747 INFO: Processing module hooks (post-graph stage)...
+39974 INFO: Processing standard module hook 'hook-PIL.SpiderImagePlugin.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+40047 INFO: Performing binary vs. data reclassification (260 entries)
+40072 INFO: Looking for ctypes DLLs
+40079 WARNING: Ignoring AppKit.framework/AppKit imported from C:\Users\lq950\AppData\Local\Programs\Python\Python313\Lib\site-packages\darkdetect\_mac_detect.py - only basenames are supported with ctypes imports!
+40095 WARNING: Ignoring /System/Library/Frameworks/IOKit.framework/IOKit imported from C:\Users\lq950\AppData\Local\Programs\Python\Python313\Lib\site-packages\serial\tools\list_ports_osx.py - only basenames are supported with ctypes imports!
+40095 WARNING: Ignoring /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation imported from C:\Users\lq950\AppData\Local\Programs\Python\Python313\Lib\site-packages\serial\tools\list_ports_osx.py - only basenames are supported with ctypes imports!
+40098 INFO: Analyzing run-time hooks ...
+40099 INFO: Including run-time hook 'pyi_rth_inspect.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+40102 INFO: Including run-time hook 'pyi_rth_pyside6.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+40104 INFO: Processing pre-find-module-path hook 'hook-_pyi_rth_utils.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks\\pre_find_module_path'
+40105 INFO: Processing standard module hook 'hook-_pyi_rth_utils.py' from 'C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+40115 INFO: Creating base_library.zip...
+40131 INFO: Looking for dynamic libraries
+
+[1;33mðŸ“¢ Tips:[0m QFluentWidgets Pro is now released. Click [1;96mhttps://qfluentwidgets.com/pages/pro[0m to learn more about it.
+
+40522 INFO: Extra DLL search directories (AddDllDirectory): ['C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\shiboken6']
+40522 INFO: Extra DLL search directories (PATH): ['C:\\Users\\lq950\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PySide6']
+41464 INFO: Warnings written to C:\Users\lq950\Desktop\serial_tool\build\WB2SerialTool\warn-WB2SerialTool.txt
+41491 INFO: Graph cross-reference written to C:\Users\lq950\Desktop\serial_tool\build\WB2SerialTool\xref-WB2SerialTool.html
+41512 INFO: checking PYZ
+41515 INFO: Building because C:\Users\lq950\Desktop\serial_tool\app\main_window.py changed
+41515 INFO: Building PYZ (ZlibArchive) C:\Users\lq950\Desktop\serial_tool\build\WB2SerialTool\PYZ-00.pyz
+41875 INFO: Building PYZ (ZlibArchive) C:\Users\lq950\Desktop\serial_tool\build\WB2SerialTool\PYZ-00.pyz completed successfully.
+41887 INFO: checking PKG
+41890 INFO: Building because toc changed
+41890 INFO: Building PKG (CArchive) WB2SerialTool.pkg
+56682 INFO: Building PKG (CArchive) WB2SerialTool.pkg completed successfully.
+56688 INFO: Bootloader C:\Users\lq950\AppData\Local\Programs\Python\Python313\Lib\site-packages\PyInstaller\bootloader\Windows-64bit-intel\runw.exe
+56688 INFO: checking EXE
+56690 INFO: Building because toc changed
+56690 INFO: Building EXE from EXE-00.toc
+56697 INFO: Copying bootloader EXE to C:\Users\lq950\Desktop\serial_tool\dist\WB2SerialTool.exe
+56707 INFO: Copying icon to EXE
+56714 INFO: Copying 0 resources to EXE
+56714 INFO: Embedding manifest in EXE
+56722 INFO: Appending PKG archive to EXE
+56764 INFO: Fixing EXE headers
+56997 INFO: Building EXE from EXE-00.toc completed successfully.
+57003 INFO: Build complete! The results are available in: C:\Users\lq950\Desktop\serial_tool\dist
+=== Done ===
+Output: dist\WB2SerialTool.exe
+Çë°´ÈÎÒâ¼ü¼ÌÐø. . . 

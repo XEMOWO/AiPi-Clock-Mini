@@ -1,0 +1,25 @@
+{
+  "port": "COM13",
+  "baud": 2000000,
+  "sim_mode": false,
+  "quick_buttons": [
+    {
+      "label": "PING",
+      "text": "#XPING"
+    },
+    {
+      "label": "状态",
+      "text": "#XSTA"
+    },
+    {
+      "label": "版本",
+      "text": "#XVER"
+    }
+  ],
+  "last_ssid": "FAE@Seahi",
+  "last_city": "440306",
+  "auto_refresh": false,
+  "mon_on": true,
+  "mon_file": "//wsl.localhost/Ubuntu-22.04/home/xemowo/claude-monitor/claude code.txt",
+  "mon_ip": "172.29.217.146"
+}

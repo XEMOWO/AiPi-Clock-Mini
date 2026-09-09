@@ -1,0 +1,14 @@
+# 编译产物
+build_out/
+*.o
+*.elf
+
+# 烧录工具日志
+log/
+Windows烧录/log/
+
+# 本地工作配置
+.claude/
+
+# Python 缓存
+tools/__pycache__/

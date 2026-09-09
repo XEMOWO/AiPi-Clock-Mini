@@ -1,0 +1,36 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "一键烧录 (编译+选串口+下载)",
+            "type": "shell",
+            "command": "./flash.sh",
+            "options": { "cwd": "${workspaceFolder}" },
+            "problemMatcher": [],
+            "group": { "kind": "build", "isDefault": true },
+            "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+        },
+        {
+            "label": "仅编译 (make -j8)",
+            "type": "shell",
+            "command": "make -j8",
+            "options": { "cwd": "${workspaceFolder}" },
+            "problemMatcher": [],
+            "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+        },
+        {
+            "label": "一键烧录 - Windows原生 (需装MSYS2)",
+            "type": "shell",
+            "command": "C:\\msys64\\usr\\bin\\bash.exe",
+            "args": [
+                "-lc",
+                "cd \"$(echo \"$VSC_WORKSPACE\" | sed -E 's#^([A-Za-z]):#/\\L\\1#' | sed 's#\\\\#/#g')\" && ./flash.sh"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": { "VSC_WORKSPACE": "${workspaceFolder}" }
+            },
+            "problemMatcher": []
+        }
+    ]
+}
