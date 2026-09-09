@@ -34,7 +34,7 @@ disabled by default** (second-dev scope, see below).
 | What | Details |
 |------|---------|
 | 🖥️ Display | Full-color **172×320** LCD over **hardware SPI @ 40 MHz**; GUI Guider designed UI on **LVGL 8** |
-| 📶 WiFi | **No WiFi preloaded** — first boot goes straight into *phone provisioning*: open the open AP `Clock-Mini-XXXX`, then `192.168.169.1` in the browser |
+| 📶 WiFi | **No WiFi preloaded** — first boot goes straight into *phone provisioning*: open the open AP `Clock-Mini-XXXX`, then `192.168.4.1` in the browser |
 | ⏰ Time | NTP / SNTP **automatic time sync** once connected; clock UI with scroll animation & gradient background |
 | ⌨️ Commands | xcmd UART commands — change WiFi / city on the fly |
 | 💾 Storage | easyflash persistence — settings survive power-off |
