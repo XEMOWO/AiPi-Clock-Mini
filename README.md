@@ -81,13 +81,15 @@ Settings persist to `config.json` next to the exe. Source lives in
 
 **Method 1 — Windows one-click (zero install)**
 
-1. Download **WB2-clock.zip** from [Releases](https://github.com/XEMOWO/ai-wb2-clock/releases) *(tools & 70+ flash configs included — nothing to install)*
-2. Extract → open `Windows烧录/` → double-click `一键烧录.bat`
+1. Get this repo: green **Code → Download ZIP** (or `git clone`), then extract
+2. Open `Windows烧录/` → double-click `一键烧录.bat` *(flash tool, prebuilt firmware & 70+ flash configs all inside the repo — nothing else to install)*
 3. Enter the COM port (e.g. `COM3` from Device Manager)
 4. When prompted: **hold BOOT → tap RST → release BOOT**
 5. Done — it flashes automatically!
 
-**Method 2 — Linux / WSL script**
+> This repo is self-contained for flashing — **no SDK, no compiler**. Only the CH340 driver is needed (usually auto-installed on Win10+).
+
+**Method 2 — Linux / WSL script** *(requires the SDK, same as Method 3; just flashing → Method 1)*
 
 ```bash
 ./flash.sh                     # build → pick port → pick baud → flash
@@ -98,18 +100,22 @@ Settings persist to `config.json` next to the exe. Source lives in
 > Serial permission (once): `sudo usermod -aG dialout $USER`
 > If flashing stalls: **hold BOOT → tap RST** to re-enter download mode.
 
-**Method 3 — build from source**
+**Method 3 — build from source** *(requires the SDK — see the expanded section below)*
 
 ```bash
-git clone https://github.com/XEMOWO/ai-wb2-clock
-cd ai-wb2-clock
+git clone https://github.com/XEMOWO/AiPi-Clock-Mini
+cd AiPi-Clock-Mini
 
 make -j8                       # build only
 make flash SERIAL_PORT=/dev/ttyUSB0 SERIAL_BAUDRATE=921600
 ```
 
+> ⚠️ **This repo does NOT contain the SDK** — no `components/`, `toolchain/` or `make_scripts_riscv/`. Compiling requires an external SDK; follow the expanded section below. Only want to flash? Use **Method 1** — nothing to install.
+
 <details>
 <summary><b>🧰 Set up a custom SDK environment</b> (click to expand)</summary>
+
+> **This repo ships source only — no SDK.** Building requires an external [Ai-Thinker-WB2 SDK](https://gitee.com/Ai-Thinker-Open/Ai-Thinker-WB2); the steps below set it up once:
 
 1. **Clone the SDK + submodules**
 
@@ -309,13 +315,15 @@ Windows 上跑 `build.bat` 即可用 PyInstaller 重新打包。
 
 **方法一：Windows 一键烧录（零安装）**
 
-1. 从 [Releases](https://github.com/XEMOWO/ai-wb2-clock/releases) 下载 **WB2-clock.zip**（完整发行包，烧录工具 + 70+ 型号 flash 配置全内置，什么都不用装）
-2. 解压 → 打开 `Windows烧录/` → **双击 `一键烧录.bat`**
+1. 获取本仓库：绿色 **Code → Download ZIP**（或 `git clone`），然后解压
+2. 打开 `Windows烧录/` → **双击 `一键烧录.bat`**（烧录工具、预编译固件、70+ 型号 flash 配置全都在仓库里，什么都不用装）
 3. 输入串口号（设备管理器查看，如 `COM3`）
 4. 提示时**按住 BOOT → 按一下 RST → 松开 BOOT**
 5. 自动烧完，开机！
 
-**方法二：Linux / WSL 脚本**
+> 只烧录时本仓库是自包含的——**不需要 SDK、不需要编译器**，只需 CH340 驱动（Win10+ 一般自动装）。
+
+**方法二：Linux / WSL 脚本**（需 SDK 环境，同方法三；只想烧录用方法一）
 
 ```bash
 ./flash.sh                     # 编译 → 选串口 → 选波特率 → 烧录
@@ -326,18 +334,22 @@ Windows 上跑 `build.bat` 即可用 PyInstaller 重新打包。
 > 串口权限（一次）：`sudo usermod -aG dialout $USER`
 > 卡住时：**按住 BOOT → 按 RST** 重新进入下载模式。
 
-**方法三：从源码编译**
+**方法三：从源码编译**（需先装 SDK，见下方展开）
 
 ```bash
-git clone https://github.com/XEMOWO/ai-wb2-clock
-cd ai-wb2-clock
+git clone https://github.com/XEMOWO/AiPi-Clock-Mini
+cd AiPi-Clock-Mini
 
 make -j8                       # 只编译
 make flash SERIAL_PORT=/dev/ttyUSB0 SERIAL_BAUDRATE=921600
 ```
 
+> ⚠️ **本仓库不含 SDK** —— 没有 `components/`、`toolchain/`、`make_scripts_riscv/`。要编译必须先克隆 SDK，按下方展开章节操作。只想烧录？用**方法一**，零安装。
+
 <details>
 <summary><b>🧰 用官方 SDK 自己搭环境</b>（点击展开）</summary>
+
+> **本仓库只含项目源码——不含 SDK**。编译需要外部的 [Ai-Thinker-WB2 SDK](https://gitee.com/Ai-Thinker-Open/Ai-Thinker-WB2)，下面步骤一次性配齐：
 
 1. **克隆 SDK + 子模块**
 
