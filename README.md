@@ -26,22 +26,36 @@ RISC-V · ST7789 **172×320** LCD · LVGL 8 · WiFi + SNTP
 
 ## 📖 English
 
-An LVGL desktop clock built on **Ai-WB2 (BL602)**: a GUI Guider designed UI with
-weather icons, temperature / humidity display, WiFi + SNTP automatic time sync,
-and configuration via UART commands with flash persistence.
+An LVGL desktop clock built on **Ai-WB2 (BL602)**: out of the box it shows the
+time (NTP-synced) and connects to WiFi via phone provisioning — the weather,
+wallpaper playback, status lamp and the PC companion app are **built-in but
+disabled by default** (second-dev scope, see below).
 
 ### ✨ Features
 
-| Feature | Details |
-|---------|---------|
-| 🖥️ Display | Full-color **172×320** LCD over **hardware SPI @ 40 MHz** |
-| 🎨 UI | GUI Guider designed interface on **LVGL 8** |
-| 🌤️ Info | Weather icons + temperature / humidity |
-| 📶 Network | WiFi + SNTP automatic time sync |
+**🎉 Factory default (flash-and-go — nothing else to configure):**
+
+| What | Details |
+|------|---------|
+| 🖥️ Display | Full-color **172×320** LCD over **hardware SPI @ 40 MHz**; GUI Guider designed UI on **LVGL 8** |
+| 📶 WiFi | **No WiFi preloaded** — first boot goes straight into *phone provisioning*: open the open AP `Clock-Mini-XXXX`, then `192.168.169.1` in the browser |
+| ⏰ Time | NTP / SNTP **automatic time sync** once connected; clock UI with scroll animation & gradient background |
 | ⌨️ Commands | xcmd UART commands — change WiFi / city on the fly |
 | 💾 Storage | easyflash persistence — settings survive power-off |
-| 🪟 Flashing | One-click Windows flashing (zero install) |
-| 🐧 Platform | Linux / WSL / MSYS2 supported |
+| 🪟 Flashing | One-click Windows flashing (zero install); Linux / WSL / MSYS2 supported |
+
+**🛠️ Optional (built in, OFF by default — second-dev scope).**
+These ship in the firmware but are disabled until you switch them on (most are
+driven from the [PC companion app](#-pc-companion-app-wb2serialtool)):
+
+| Feature | Factory state | How to enable |
+|---------|---------------|---------------|
+| 🌦️ Weather (icons + temperature / humidity) | **off** (`wx_on = 0`) | set `wx_on = 1` in `WB2-clock2/xcmd/cfg_store.c` and re-flash — the Gaode (amap) key is already pre-loaded; switch provider / key afterwards via `#XWXAPI` / `#XWXKEY` |
+| 🖼️ Wallpaper playback | **off** (`wall_mode = 0`) | companion app “Wallpaper” card (uploads image over UART, sets wallpaper/clock display duration & animation) |
+| 🏞️ Boot image | **none** (`wall_valid = 0`) | companion app “Boot image” card (full-screen 320×220, shows 2 s then clock) |
+| 💡 Status lamp / monitor | **off** (`mon_on = 0`) | `#XLAMP,0-4` and `#XMON,1` serial commands |
+| 🎨 Clock style & background | scroll animation **on**, blue-purple gradient | `#XCLOCK` / `#XBG` commands or the app’s color picker |
+| 🖥️ PC companion app | separate app — **not firmware-dependent** | run `serial_tool/dist/WB2SerialTool.exe`; see below |
 
 ### 🖥️ PC Companion App (WB2SerialTool)
 
@@ -190,6 +204,10 @@ WB2-clock2/
 
 ### 🌦️ Weather API (3 sources)
 
+> 🚨 Weather is **off by default** (`wx_on = 0` in `WB2-clock2/xcmd/cfg_store.c`).
+> Set it to `1` and re-flash first, then everything below applies (the amap key
+> is pre-loaded). See [Optional](#-features) above.
+
 Three providers, switchable live over UART (`#XWXAPI`); API keys are sent by the host over UART (`#XWXKEY`) and stored in flash:
 
 | Provider | Notes |
@@ -261,21 +279,35 @@ Example — switch to QWeather and set the API key:
 
 ## 📖 中文
 
-基于 **Ai-WB2 (BL602)** 的桌面时钟：GUI Guider 设计的 LVGL 界面、天气图标、
-大气温湿度显示、WiFi 连网 + SNTP 自动校时，配置通过串口命令随时改、断电不丢。
+基于 **Ai-WB2 (BL602)** 的桌面时钟：出厂默认就是「显示时间」——手机配网连上
+WiFi 后 SNTP 自动校时、LVGL 时钟界面。天气、壁纸、状态灯、上位机等扩展功能**已
+内置但默认关闭**，属于二次开发范畴（见下方「可选」）。
 
 ### ✨ 特性
 
-| 特性 | 说明 |
+**🎉 出厂默认功能（烧录即用，什么都不用配）：**
+
+| 功能 | 说明 |
 |------|------|
-| 🖥️ 屏幕 | **172×320** 全彩 LCD（硬件 SPI @ 40MHz） |
-| 🎨 界面 | GUI Guider 设计，**LVGL 8** |
-| 🌤️ 信息 | 天气图标 + 大气温湿度 |
-| 📶 联网 | WiFi + SNTP 自动校时 |
+| 🖥️ 屏幕 | **172×320** 全彩 LCD（硬件 SPI @ 40MHz），GUI Guider 设计的 **LVGL 8** 界面 |
+| 📶 配网 | **出厂不预置 WiFi** —— 首次开机直接进入手机配网：连上无密码热点 `Clock-Mini-XXXX`，浏览器打开 `192.168.169.1` 填路由 WiFi |
+| ⏰ 时间 | 连网后 **SNTP 自动校时**；时钟界面自带滚动翻页动画、渐变背景 |
 | ⌨️ 命令 | xcmd 串口命令，在线改 WiFi / 城市 |
 | 💾 存储 | easyflash 持久化，断电不丢 |
-| 🪟 烧录 | Windows 一键烧录（零安装） |
-| 🐧 平台 | Linux / WSL / MSYS2 |
+| 🪟 烧录 | Windows 一键烧录（零安装），支持 Linux / WSL / MSYS2 |
+
+**🛠️ 可选（内置但默认关闭，二次开发范畴）。**
+固件里已有这些代码，默认关闭；先在代码里开或由配套上位机开启（多数用
+[上位机](#-pc-配套软件wb2serialtool) 驱动）：
+
+| 功能 | 出厂状态 | 怎么开启 |
+|------|---------|---------|
+| 🌦️ 天气（图标 + 大气温湿度） | **关**（`wx_on = 0`） | 改 `WB2-clock2/xcmd/cfg_store.c` 里 `wx_on = 0` 为 `1` 后重新烧录——高德 API Key 已内置；之后可用 `#XWXAPI` / `#XWXKEY` 换天气源 / Key |
+| 🖼️ 壁纸图播放 | **关**（`wall_mode = 0`） | 上位机「壁纸」卡片：串口上传图片，设壁纸/时钟各自显示时长与切换动画 |
+| 🏞️ 开机图 | **无**（`wall_valid = 0`） | 上位机「开机图」卡片：全屏 320×220 上传，上电显示 2 秒后进时钟 |
+| 💡 状态灯 / 监控 | **关**（`mon_on = 0`） | 串口命令 `#XLAMP,0-4`（状态灯）和 `#XMON,1`（监控开关） |
+| 🎨 时钟样式 / 背景 | 滚动翻页**开**、蓝紫渐变 | `#XCLOCK` / `#XBG` 命令，或上位机背景颜色面板 |
+| 🖥️ 上位机软件 | 独立软件，**与固件无关** | 直接运行 `serial_tool/dist/WB2SerialTool.exe`，见下节 |
 
 ### 🖥️ PC 配套软件（WB2SerialTool）
 
@@ -423,6 +455,10 @@ WB2-clock2/
 > 配置存 flash（easyflash），在线改完重启不丢。
 
 ### 🌦️ 天气 API（三源）
+
+> 🚨 天气**出厂默认关闭**（`WB2-clock2/xcmd/cfg_store.c` 里 `wx_on = 0`）。
+> 先改成 `1` 重新烧录，下面这些才生效（高德 Key 已内置）。详见上方
+> [可选功能](#-特性)。
 
 三个天气源，串口 `#XWXAPI` 在线切换；API Key 由串口 `#XWXKEY` 下发并存入 flash：
 
