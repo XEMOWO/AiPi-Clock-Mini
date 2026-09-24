@@ -99,7 +99,7 @@ Settings persist to `config.json` next to the exe. Source lives in
 
 > This repo is self-contained for flashing — **no SDK, no compiler**. Only the CH340 driver is needed (usually auto-installed on Win10+).
 
-**Method 2 — Linux / WSL script** *(same as Method 3 — needs the toolchain, fetched automatically; flashing only → Method 1)*
+**Method 2 — Linux / WSL script** *(same as Method 3 — uses your own toolchain if you have one, otherwise fetched automatically; flashing only → Method 1)*
 
 ```bash
 ./flash.sh                     # build → pick port → pick baud → flash
@@ -110,17 +110,27 @@ Settings persist to `config.json` next to the exe. Source lives in
 > Serial permission (once): `sudo usermod -aG dialout $USER`
 > If flashing stalls: **hold BOOT → tap RST** to re-enter download mode.
 
-**Method 3 — build from source** *(SDK ships with the repo; toolchain is fetched on first run)*
+**Method 3 — build from source** *(SDK ships with the repo; the toolchain is only fetched if you don't already have one)*
 
 ```bash
 git clone https://github.com/XEMOWO/AiPi-Clock-Mini
 cd AiPi-Clock-Mini
 
-./flash.sh                     # first run fetches the toolchain → builds → flashes
+./flash.sh                     # builds → flashes (downloads a toolchain only if needed)
 ```
 
 > No separate SDK install needed: `sdk/` **is** the SDK source, with every patch already applied.
-> Only the toolchain and flash tool (~2.3 GB) are kept out of the repo — the first run pulls them from the official mirror, once.
+>
+> **Already have a RISC-V toolchain? Nothing is downloaded.** `riscv64-unknown-elf-gcc` is looked up in
+> `$CONFIG_TOOLPREFIX` → `$BL60X_TOOLCHAIN_PATH` → `PATH` → common install dirs (`/opt/riscv`, `~/riscv`, …).
+> Candidates are verified by actually compiling a `-march=rv32imfc -mabi=ilp32f` test file, so a look-alike
+> toolchain that only ships rv64 libs (e.g. T-Head's) is reported and skipped instead of dying mid-link.
+>
+> Otherwise only **your** platform's ~2.3 GB toolchain plus the flash tool is pulled from the official
+> mirror — once, with a progress bar and transfer rate. Never both platforms.
+>
+> macOS: there's no bundled build, so if you don't have your own toolchain it stops immediately and says so
+> rather than pulling 2.3 GB it can't use.
 
 <details>
 <summary><b>🧰 Manual build / using your own SDK</b> (click to expand)</summary>
@@ -132,6 +142,9 @@ git submodule update --init --recursive    # once: fetch toolchain + flash tool 
 make -j8                                   # build
 make flash SERIAL_PORT=/dev/ttyUSB0 SERIAL_BAUDRATE=921600
 ```
+
+> The submodule step is only needed when you don't have your own toolchain — `make` uses a local one
+> automatically and tells you what it couldn't find if there isn't one.
 
 Flash with chip **BL602**, flash size **2M**, file `build_out/WB2-clock2.bin`.
 
@@ -166,7 +179,8 @@ WB2-clock2/
 ├── proj_config.mk        # Chip/feature config (2M flash, WiFi, LVGL…)
 ├── flash.sh              # One-click: sync UI + build + flash
 ├── sync_gui.sh           # GUI Guider → project sync (UI devs only)
-├── sdk/                  # ⭐ SDK source, all patches applied (toolchain/flash tool are submodules, fetched on first run)
+├── sdk/                  # ⭐ SDK source, all patches applied (toolchain/flash tool are submodules, fetched only if needed)
+├── tools/find_toolchain.sh  # Shared toolchain lookup used by both Makefile and flash.sh
 ├── Windows烧录/           # Windows zero-install flashing (self-contained)
 ├── serial_tool/          # PC companion app (PySide6 source + exe)
 │   ├── dist/WB2SerialTool.exe  # ⭐ The PC software you actually run
@@ -259,7 +273,7 @@ Example — switch to QWeather and set the API key:
 | Colors all wrong | Shouldn't happen — the bundled `sdk/` already sets `LV_COLOR_16_SWAP 0`; only an external SDK needs the edit |
 | Cannot connect to WiFi | Check SSID/password (`cfg_store.c` defaults / xcmd) |
 | `undefined reference to '_fw_size'` | You're building against an unpatched external SDK. Drop `BL60X_SDK_PATH` to use the bundled `sdk/`, or sync the patches yourself (table above) |
-| `SDK 工具链缺失` / toolchain missing | First run didn't fetch the submodules: `git submodule update --init --recursive` |
+| "没找到能用的 riscv64-unknown-elf 工具链" / toolchain missing | `sh tools/find_toolchain.sh` prints where it looked and why each candidate was rejected. Have one already? Point at it: `BL60X_TOOLCHAIN_PATH=<dir> make`. Don't? Let `./flash.sh` fetch the bundled one. |
 | No COM port in Device Manager | Install **CH340 driver**, replug USB |
 | `BFLB FLASH MATCH TYPE FAIL` | Log `readdata: b'xxxxxxxx'` → take first 6 hex digits (e.g. `5e4016`) → copy a `.conf` from `Windows烧录/utils/flash/bl602/` and rename it `<MODEL>_<first6>.conf` |
 

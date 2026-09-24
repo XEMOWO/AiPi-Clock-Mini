@@ -30,8 +30,32 @@ done
 PORT="${ARGS[0]}"
 BAUD="${ARGS[1]}"
 
-# ── SDK 定位 + 工具链自举 ─────────────────────────────────
-# 仓库自带 sdk/ (源码已含全部补丁); 工具链与烧录工具是 submodule, 不在仓库里, 首次要拉
+# ── 拉 submodule (只在真的缺工具链时才走到) ───────────────
+# git 默认只在 tty 上画进度条, 这里显式 --progress, 非 tty(CI/日志重定向)也能看到
+# "Receiving objects: 45% ..., 12.3 MiB | 5.6 MiB/s" —— 有百分比也有速率。
+# 浅克隆只拿得到分支 tip, 所以先比对"镜像 tip"和"仓库钉住的提交": 一致才敢用 --depth 1
+# (少下历史, 快得多); 万一哪天镜像更新了就退回完整克隆, 不会卡死。
+pull_submodule() {
+    path="$1"; label="$2"
+    url="$(git config -f .gitmodules --get "submodule.$path.url" 2>/dev/null || true)"
+    pin="$(git ls-tree HEAD "$path" 2>/dev/null | awk '{print $3}')"
+    tip="$(git ls-remote "$url" HEAD 2>/dev/null | cut -f1)"
+    echo "── $label  ($path) ──"
+    if [ -n "$pin" ] && [ "$pin" = "$tip" ]; then
+        git submodule update --init --depth 1 --progress "$path" \
+            || git submodule update --init --progress "$path" \
+            || { echo "✘ $label 拉取失败, 检查网络后重试"; exit 1; }
+    else
+        echo "  (镜像 tip 已前进, 浅克隆取不到钉住的提交, 走完整克隆)"
+        git submodule update --init --progress "$path" \
+            || { echo "✘ $label 拉取失败, 检查网络后重试"; exit 1; }
+    fi
+}
+
+# ── SDK 定位 + 工具链 ─────────────────────────────────────
+# 仓库自带 sdk/ (源码已含全部补丁); 工具链与烧录工具是 submodule, 不在仓库里。
+# 本机已经装了 riscv64-unknown-elf 就直接用, 一个字节都不下载; 真没有才拉,
+# 而且只拉当前平台那一份 + 烧录工具 (不是 --recursive 把两个平台都拉下来)。
 ROOT="$(pwd)"
 SDK="${BL60X_SDK_PATH:-$ROOT/sdk}"
 if [ ! -f "$SDK/make_scripts_riscv/project.mk" ]; then
@@ -39,17 +63,39 @@ if [ ! -f "$SDK/make_scripts_riscv/project.mk" ]; then
     echo "  该目录应随仓库一起拿到; 确实没有的话用环境变量指定: BL60X_SDK_PATH=<你的 SDK 路径> ./flash.sh"
     exit 1
 fi
+export BL60X_SDK_PATH="$SDK"    # 让 make 用同一份, 免得两边解析出不同结果
 
-if [ ! -d "$SDK/toolchain/riscv/Linux/bin" ] && [ ! -d "$SDK/toolchain/riscv/MSYS/bin" ]; then
-    echo "════════ SDK 工具链未就绪, 首次拉取 (约 2GB, 只需一次) ════════"
-    if [ -d .git ]; then
-        git submodule update --init --recursive || { echo "✘ 工具链拉取失败, 检查网络后重试"; exit 1; }
-    else
-        echo "✘ 当前目录不是 git 仓库(可能是下载的 ZIP), 无法自动拉取工具链"
-        echo "  请改用: git clone https://github.com/XEMOWO/AiPi-Clock-Mini"
+if TOOLCHAIN_PREFIX="$(sh tools/find_toolchain.sh)"; then
+    echo "✔ 用本机已装的工具链: ${TOOLCHAIN_PREFIX}gcc"
+else
+    # 本机没有, 只能拉仓库自带的那份 —— 它只覆盖 Linux 和 Windows(MSYS) 两个平台
+    PLATFORM="$(uname -s | cut -d '_' -f1)"
+    case "$PLATFORM" in
+        MINGW*|MSYS*|CYGWIN*) PLATFORM=MSYS ;;
+    esac
+    if [ "$PLATFORM" != Linux ] && [ "$PLATFORM" != MSYS ]; then
+        echo "✘ 本机没有 riscv64-unknown-elf 工具链, 仓库自带的也只有 Linux / Windows 两份, 没有 $PLATFORM 版"
+        echo "  先自己装一个再跑; 装好但不在 PATH 上的话: BL60X_TOOLCHAIN_PATH=<工具链目录> ./flash.sh"
         exit 1
     fi
-    echo "✔ 工具链就绪"
+    if [ ! -d .git ]; then
+        echo "✘ 本机没有工具链, 当前目录又不是 git 仓库(可能是解压出来的 ZIP), 没法自动拉"
+        echo "  改用: git clone https://github.com/XEMOWO/AiPi-Clock-Mini"
+        exit 1
+    fi
+
+    echo "════════ 本机没有工具链, 首次拉取 (约 2.3GB, 只需一次) ════════"
+    pull_submodule "sdk/toolchain/riscv/$PLATFORM" "$PLATFORM 版工具链"
+    pull_submodule "sdk/tools/flash_tool"          "烧录工具"
+
+    # 拉完必须回头再验一次。刚下下来的东西光看"目录在不在"是不够的 ——
+    # 仓库自带这份解出来没有可执行位, 不验就会一路走到 make 才炸, 那时日志已经看不出原因了。
+    if TOOLCHAIN_PREFIX="$(sh tools/find_toolchain.sh)"; then
+        echo "✔ 工具链就绪: ${TOOLCHAIN_PREFIX}gcc"
+    else
+        echo "✘ 拉下来了但不能用(上面 find_toolchain 说明了原因), 没法继续"
+        exit 1
+    fi
 fi
 
 TOTAL=3; [ "$SYNC" = 1 ] && TOTAL=4; [ "$BUILD" = 1 ] && TOTAL=$((TOTAL+1))

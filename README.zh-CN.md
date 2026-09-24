@@ -98,7 +98,7 @@ Windows 上跑 `build.bat` 即可用 PyInstaller 重新打包。
 
 > 只烧录时本仓库是自包含的——**不需要 SDK、不需要编译器**，只需 CH340 驱动（Win10+ 一般自动装）。
 
-**方法二：Linux / WSL 脚本**（需 SDK 环境，同方法三；只想烧录用方法一）
+**方法二：Linux / WSL 脚本**（同方法三；本机已有工具链就直接用，没有才自动拉；只想烧录用方法一）
 
 ```bash
 ./flash.sh                     # 编译 → 选串口 → 选波特率 → 烧录
@@ -109,17 +109,26 @@ Windows 上跑 `build.bat` 即可用 PyInstaller 重新打包。
 > 串口权限（一次）：`sudo usermod -aG dialout $USER`
 > 卡住时：**按住 BOOT → 按 RST** 重新进入下载模式。
 
-**方法三：从源码编译**（SDK 随仓库自带，首次自动拉工具链）
+**方法三：从源码编译**（SDK 随仓库自带；工具链本机已有就直接用，没有才拉）
 
 ```bash
 git clone https://github.com/XEMOWO/AiPi-Clock-Mini
 cd AiPi-Clock-Mini
 
-./flash.sh                     # 首次自动拉工具链 → 编译 → 选串口 → 烧录
+./flash.sh                     # 编译 → 选串口 → 烧录（确实缺工具链才会去拉）
 ```
 
 > 不需要另外装 SDK：`sdk/` 目录里就是**打好全部补丁的 SDK 源码**。
-> 只有工具链和烧录工具（约 2.3 GB）没进仓库，首次运行会自动从官方镜像拉取，只拉一次。
+>
+> **本机已经装了 RISC-V 工具链的话，一个字节都不下载** —— 依次找
+> `$CONFIG_TOOLPREFIX` → `$BL60X_TOOLCHAIN_PATH` → `PATH` → `/opt/riscv`、`~/riscv` 等常见目录。
+> 找到的还会真编一个 `-march=rv32imfc -mabi=ilp32f` 的小程序验一下：像平头哥那种名字对、但只装了
+> rv64 库的（链接到一半就 `ELFCLASS64 incompatible`），会被明确报出来跳过，不会编到一半才炸。
+>
+> 确实没有，才从官方镜像拉**当前平台那一份**工具链 + 烧录工具（约 2.3 GB，只拉一次，
+> 带进度条和速率），不会把两个平台都拉下来。
+>
+> macOS：仓库不提供 macOS 版工具链，本机没有就直接报错说清楚，不会白拉 2.3 GB。
 
 <details>
 <summary><b>🧰 手动编译 / 用外部 SDK</b>（点击展开）</summary>
@@ -131,6 +140,8 @@ git submodule update --init --recursive    # 首次: 拉工具链 + 烧录工具
 make -j8                                   # 编译
 make flash SERIAL_PORT=/dev/ttyUSB0 SERIAL_BAUDRATE=921600
 ```
+
+> 这一步只在**本机没有工具链**时才需要；有的话 `make` 会自动用本机的，找不到也会说清楚查到哪了。
 
 烧录时芯片选 **BL602**，Flash **2M**，烧 `build_out/WB2-clock2.bin`。
 
@@ -165,7 +176,8 @@ WB2-clock2/
 ├── proj_config.mk        # 芯片/功能配置（2M flash、WiFi、LVGL…）
 ├── flash.sh              # 一键: 同步UI + 编译 + 选串口/波特率 + 烧录
 ├── sync_gui.sh           # GUI Guider → 项目同步（仅 UI 开发者）
-├── sdk/                  # ⭐ 打好全部补丁的 SDK 源码（工具链/烧录工具是 submodule，首次自动拉）
+├── sdk/                  # ⭐ 打好全部补丁的 SDK 源码（工具链/烧录工具是 submodule，缺了才拉）
+├── tools/find_toolchain.sh  # 工具链查找脚本（Makefile 和 flash.sh 共用同一份口径）
 ├── Windows烧录/           # Windows 零安装一键烧录（工具全内置）
 ├── serial_tool/          # PC 配套软件（PySide6 源码 + exe）
 │   ├── dist/WB2SerialTool.exe  # ⭐ 日常使用的就是它
@@ -258,7 +270,7 @@ WB2-clock2/
 | 图片颜色全错 | 正常不会发生 —— 自带 `sdk/` 已内置 `LV_COLOR_16_SWAP 0`；用外部 SDK 才需要自己改 |
 | 连不上 WiFi | 检查 SSID/密码（`cfg_store.c` 默认值 / xcmd 修改） |
 | 报 `undefined reference to '_fw_size'` | 用了没打补丁的外部 SDK。删掉 `BL60X_SDK_PATH` 改用自带的 `sdk/`，或按上面补丁表自己同步 |
-| 报「SDK 工具链缺失」 | 首次没拉子模块：`git submodule update --init --recursive` |
+| 报「没找到能用的 riscv64-unknown-elf 工具链」 | `sh tools/find_toolchain.sh` 会列出查到哪、每个候选为什么不行。本机有就指明位置：`BL60X_TOOLCHAIN_PATH=<目录> make`；没有就让 `./flash.sh` 去拉自带的那份 |
 | 设备管理器看不到串口 | 装 **CH340 驱动**，重新插拔 |
 | 报 `BFLB FLASH MATCH TYPE FAIL` | 日志 `readdata: b'xxxxxxxx'` 取前 6 位（如 `5e4016`），在 `Windows烧录/utils/flash/bl602/` 复制一个 `.conf` 改名为 `<型号>_<前6位>.conf` |
 

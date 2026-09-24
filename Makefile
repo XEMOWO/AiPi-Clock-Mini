@@ -22,12 +22,23 @@ ifeq ("$(wildcard $(BL60X_SDK_PATH)/make_scripts_riscv/project.mk)","")
 $(error 找不到可用的 WB2 SDK。若仓库自带的 sdk/ 还在, 先拉子模块: git submodule update --init --recursive ；否则用 BL60X_SDK_PATH=<你的 SDK 路径> 指定)
 endif
 
-# 工具链来自 submodule(约 2GB, 不在仓库里)。目录规则与 make_scripts_riscv/toolchain.mk 一致:
-# toolchain/riscv/$(uname 第一段)/, 即 Linux / MSYS / Darwin
-TOOLCHAIN_GCC := $(BL60X_SDK_PATH)/toolchain/riscv/$(shell uname | cut -d '_' -f1)/bin/riscv64-unknown-elf-gcc
-ifeq ("$(wildcard $(TOOLCHAIN_GCC))$(wildcard $(TOOLCHAIN_GCC).exe)","")
-$(error SDK 工具链缺失: $(TOOLCHAIN_GCC)  首次使用请执行: git submodule update --init --recursive)
+# 工具链解析 —— 与 flash.sh 共用 tools/find_toolchain.sh, 两边口径完全一致:
+#   本机已经装了能编 rv32imfc/ilp32f 的 riscv64-unknown-elf 就直接用, 一个字节都不下载;
+#   没有才落到仓库自带的 submodule (sdk/toolchain/riscv/<平台>)。
+#   顺序: $CONFIG_TOOLPREFIX / $BL60X_TOOLCHAIN_PATH > PATH > /opt/riscv 等常见目录 > 仓库自带
+#
+# 前面那三个赋值是把 make 变量显式喂给脚本 —— 命令行上传的 make 变量(make FOO=bar)
+# 不会进环境, 只写 sh tools/find_toolchain.sh 的话脚本根本看不见它们。
+#
+# 必须赶在 include project.mk 之前定下来: 那边 toolchain.mk 写的是 `CONFIG_TOOLPREFIX ?=`,
+# 这里给了值它就不再覆盖, 后面 CC/LD/OBJCOPY 也就跟着指到这份工具链上了。
+ifeq ($(origin CONFIG_TOOLPREFIX),undefined)
+CONFIG_TOOLPREFIX := $(shell CONFIG_TOOLPREFIX="$(CONFIG_TOOLPREFIX)" BL60X_TOOLCHAIN_PATH="$(BL60X_TOOLCHAIN_PATH)" BL60X_SDK_PATH="$(BL60X_SDK_PATH)" sh $(PROJECT_PATH)/tools/find_toolchain.sh)
 endif
+ifeq ($(strip $(CONFIG_TOOLPREFIX)),)
+$(error 没找到能用的 riscv64-unknown-elf 工具链(上面 find_toolchain 说了查到哪、为什么不行)。直接跑 ./flash.sh 会自动拉仓库自带的那份(首次约 2.3GB, 只需一次); 本机已装的话也可以 BL60X_TOOLCHAIN_PATH=<工具链目录> make, 或 make CONFIG_TOOLPREFIX=<前缀>)
+endif
+export CONFIG_TOOLPREFIX
 
 COMPONENTS_NETWORK := sntp dns_server
 COMPONENTS_BLSYS   := bltime blfdt blmtd blota bloop loopadc looprt loopset
