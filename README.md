@@ -99,7 +99,7 @@ Settings persist to `config.json` next to the exe. Source lives in
 
 > This repo is self-contained for flashing — **no SDK, no compiler**. Only the CH340 driver is needed (usually auto-installed on Win10+).
 
-**Method 2 — Linux / WSL script** *(requires the SDK, same as Method 3; just flashing → Method 1)*
+**Method 2 — Linux / WSL script** *(same as Method 3 — needs the toolchain, fetched automatically; flashing only → Method 1)*
 
 ```bash
 ./flash.sh                     # build → pick port → pick baud → flash
@@ -110,53 +110,51 @@ Settings persist to `config.json` next to the exe. Source lives in
 > Serial permission (once): `sudo usermod -aG dialout $USER`
 > If flashing stalls: **hold BOOT → tap RST** to re-enter download mode.
 
-**Method 3 — build from source** *(requires the SDK — see the expanded section below)*
+**Method 3 — build from source** *(SDK ships with the repo; toolchain is fetched on first run)*
 
 ```bash
 git clone https://github.com/XEMOWO/AiPi-Clock-Mini
 cd AiPi-Clock-Mini
 
-make -j8                       # build only
+./flash.sh                     # first run fetches the toolchain → builds → flashes
+```
+
+> No separate SDK install needed: `sdk/` **is** the SDK source, with every patch already applied.
+> Only the toolchain and flash tool (~2.3 GB) are kept out of the repo — the first run pulls them from the official mirror, once.
+
+<details>
+<summary><b>🧰 Manual build / using your own SDK</b> (click to expand)</summary>
+
+**Without flash.sh:**
+
+```bash
+git submodule update --init --recursive    # once: fetch toolchain + flash tool (~2.3GB)
+make -j8                                   # build
 make flash SERIAL_PORT=/dev/ttyUSB0 SERIAL_BAUDRATE=921600
 ```
 
-> ⚠️ **This repo does NOT contain the SDK** — no `components/`, `toolchain/` or `make_scripts_riscv/`. Compiling requires an external SDK; follow the expanded section below. Only want to flash? Use **Method 1** — nothing to install.
+Flash with chip **BL602**, flash size **2M**, file `build_out/WB2-clock2.bin`.
 
-<details>
-<summary><b>🧰 Set up a custom SDK environment</b> (click to expand)</summary>
-
-> **This repo ships source only — no SDK.** Building requires an external [Ai-Thinker-WB2 SDK](https://gitee.com/Ai-Thinker-Open/Ai-Thinker-WB2); the steps below set it up once:
-
-1. **Clone the SDK + submodules**
+**Using your own SDK** (e.g. an existing dev setup):
 
 ```bash
-git clone https://gitee.com/Ai-Thinker-Open/Ai-Thinker-WB2
-cd Ai-Thinker-WB2
-git submodule update --init --recursive    # toolchain + flash tool — required!
-```
-
-2. **Apply a required patch** (otherwise colors are all wrong)
-
-GUI Guider exports RGB565 little-endian images, but the SDK defaults to `LV_COLOR_16_SWAP=1`:
-
-```bash
-sed -i 's/#define LV_COLOR_16_SWAP 1/#define LV_COLOR_16_SWAP 0/' \
-    components/stage/lvgl/lv_conf.h
-```
-
-3. **Place the project** (either way)
-
-```bash
-# A (recommended): inside the SDK's applications dir — path auto-detected
-cp -r WB2-clock2 applications/xemowo/
-
-# B: anywhere, point to the SDK manually
 export BL60X_SDK_PATH=/path/to/Ai-Thinker-WB2
+make -j8
 ```
 
-> SDK path resolution: env `BL60X_SDK_PATH` → parent-dir auto-detect → Makefile fallback.
+> Path resolution: env `BL60X_SDK_PATH` → bundled `sdk/` → parent dir. If none matches it **fails immediately**, rather than picking the wrong SDK and dying mid-build.
 
-4. **Flash**: chip **BL602**, flash size **2M**, file `build_out/WB2-clock2.bin`.
+**Patches applied in `sdk/`** — using an external SDK means syncing these yourself:
+
+| Patch | File | If missing |
+|---|---|---|
+| Export `_fw_size` symbol | `flash.ld` `flash_rom.ld` | **Link error**: `undefined reference to '_fw_size'` |
+| FreeRTOS heap 14100 → 40960 | `FreeRTOSConfig.h` | **All QWeather requests fail**: mbedtls can't allocate its handshake buffers |
+| LVGL color byte order `LV_COLOR_16_SWAP` 1→0 | `lv_conf.h` | **All images have wrong colors** |
+| LVGL refresh period 30 → 16 ms | `lv_conf.h` | UI feels sluggish |
+| UART RX buffer floor raised to 4096 | `vfs_uart.c` | Large frames lose data |
+| WiFi reconnect AP-recover | `wifi_mgmr.c` | No self-healing after a dropout |
+| Boot log mute + very-early hook | `blog.c` `bfl_main.c` + 8 more | Longer black screen at boot, power-on counter broken |
 
 </details>
 
@@ -168,6 +166,7 @@ WB2-clock2/
 ├── proj_config.mk        # Chip/feature config (2M flash, WiFi, LVGL…)
 ├── flash.sh              # One-click: sync UI + build + flash
 ├── sync_gui.sh           # GUI Guider → project sync (UI devs only)
+├── sdk/                  # ⭐ SDK source, all patches applied (toolchain/flash tool are submodules, fetched on first run)
 ├── Windows烧录/           # Windows zero-install flashing (self-contained)
 ├── serial_tool/          # PC companion app (PySide6 source + exe)
 │   ├── dist/WB2SerialTool.exe  # ⭐ The PC software you actually run
@@ -257,9 +256,10 @@ Example — switch to QWeather and set the API key:
 | Problem | Solution |
 |---------|----------|
 | Flashing stuck waiting for device | **hold BOOT → tap RST** to re-enter download mode |
-| Colors all wrong | `LV_COLOR_16_SWAP` must be **0** in `lv_conf.h` (see patch) |
+| Colors all wrong | Shouldn't happen — the bundled `sdk/` already sets `LV_COLOR_16_SWAP 0`; only an external SDK needs the edit |
 | Cannot connect to WiFi | Check SSID/password (`cfg_store.c` defaults / xcmd) |
-| `BL60X_SDK_PATH` errors | Check SDK path (see "custom SDK environment") |
+| `undefined reference to '_fw_size'` | You're building against an unpatched external SDK. Drop `BL60X_SDK_PATH` to use the bundled `sdk/`, or sync the patches yourself (table above) |
+| `SDK 工具链缺失` / toolchain missing | First run didn't fetch the submodules: `git submodule update --init --recursive` |
 | No COM port in Device Manager | Install **CH340 driver**, replug USB |
 | `BFLB FLASH MATCH TYPE FAIL` | Log `readdata: b'xxxxxxxx'` → take first 6 hex digits (e.g. `5e4016`) → copy a `.conf` from `Windows烧录/utils/flash/bl602/` and rename it `<MODEL>_<first6>.conf` |
 

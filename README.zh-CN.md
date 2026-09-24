@@ -109,53 +109,51 @@ Windows 上跑 `build.bat` 即可用 PyInstaller 重新打包。
 > 串口权限（一次）：`sudo usermod -aG dialout $USER`
 > 卡住时：**按住 BOOT → 按 RST** 重新进入下载模式。
 
-**方法三：从源码编译**（需先装 SDK，见下方展开）
+**方法三：从源码编译**（SDK 随仓库自带，首次自动拉工具链）
 
 ```bash
 git clone https://github.com/XEMOWO/AiPi-Clock-Mini
 cd AiPi-Clock-Mini
 
-make -j8                       # 只编译
+./flash.sh                     # 首次自动拉工具链 → 编译 → 选串口 → 烧录
+```
+
+> 不需要另外装 SDK：`sdk/` 目录里就是**打好全部补丁的 SDK 源码**。
+> 只有工具链和烧录工具（约 2.3 GB）没进仓库，首次运行会自动从官方镜像拉取，只拉一次。
+
+<details>
+<summary><b>🧰 手动编译 / 用外部 SDK</b>（点击展开）</summary>
+
+**不想用 flash.sh 时：**
+
+```bash
+git submodule update --init --recursive    # 首次: 拉工具链 + 烧录工具(约 2.3GB)
+make -j8                                   # 编译
 make flash SERIAL_PORT=/dev/ttyUSB0 SERIAL_BAUDRATE=921600
 ```
 
-> ⚠️ **本仓库不含 SDK** —— 没有 `components/`、`toolchain/`、`make_scripts_riscv/`。要编译必须先克隆 SDK，按下方展开章节操作。只想烧录？用**方法一**，零安装。
+烧录时芯片选 **BL602**，Flash **2M**，烧 `build_out/WB2-clock2.bin`。
 
-<details>
-<summary><b>🧰 用官方 SDK 自己搭环境</b>（点击展开）</summary>
-
-> **本仓库只含项目源码——不含 SDK**。编译需要外部的 [Ai-Thinker-WB2 SDK](https://gitee.com/Ai-Thinker-Open/Ai-Thinker-WB2)，下面步骤一次性配齐：
-
-1. **克隆 SDK + 子模块**
+**想用自己那套 SDK**（比如已经配好的开发环境）：
 
 ```bash
-git clone https://gitee.com/Ai-Thinker-Open/Ai-Thinker-WB2
-cd Ai-Thinker-WB2
-git submodule update --init --recursive    # 工具链 + 烧录工具，必需！
-```
-
-2. **打一个必须的补丁**（否则图片颜色全错）
-
-GUI Guider 导出的 RGB565 图片是小端，而 SDK 默认 `LV_COLOR_16_SWAP=1`：
-
-```bash
-sed -i 's/#define LV_COLOR_16_SWAP 1/#define LV_COLOR_16_SWAP 0/' \
-    components/stage/lvgl/lv_conf.h
-```
-
-3. **放项目**（二选一）
-
-```bash
-# A（推荐）: 放进 SDK applications，路径自动识别
-cp -r WB2-clock2 applications/xemowo/
-
-# B: 任意位置，手动指定 SDK 路径
 export BL60X_SDK_PATH=/你的/Ai-Thinker-WB2 路径
+make -j8
 ```
 
-> SDK 路径解析：环境变量 `BL60X_SDK_PATH` → 上级目录自动探测 → Makefile 兜底。
+> 路径解析顺序：环境变量 `BL60X_SDK_PATH` → 仓库自带 `sdk/` → 上级目录。都不匹配**直接报错**，不会拿错 SDK 编到一半才炸。
 
-4. **烧录时**：芯片选 **BL602**，Flash **2M**，选 `build_out/WB2-clock2.bin`。
+**`sdk/` 里打了哪些补丁** —— 用外部 SDK 的话要自己同步这些，否则各自的后果如下：
+
+| 补丁 | 文件 | 不打的后果 |
+|---|---|---|
+| 导出固件大小符号 `_fw_size` | `flash.ld` `flash_rom.ld` | **链接失败**：`undefined reference to '_fw_size'` |
+| FreeRTOS 堆 14100 → 40960 | `FreeRTOSConfig.h` | **和风天气全失败**：mbedtls 握手分配不出缓冲 |
+| LVGL 色彩字节序 `LV_COLOR_16_SWAP` 1→0 | `lv_conf.h` | **图片颜色全错** |
+| LVGL 刷新周期 30 → 16ms | `lv_conf.h` | 界面偏卡 |
+| 串口接收缓冲下限提到 4096 | `vfs_uart.c` | 大帧丢数据 |
+| WiFi 断线重连 AP-recover | `wifi_mgmr.c` | 掉线后不自愈 |
+| 启动日志静音 + 极早期钩子 | `blog.c` `bfl_main.c` 等 10 处 | 开机黑屏期变长、上电计数失效 |
 
 </details>
 
@@ -167,6 +165,7 @@ WB2-clock2/
 ├── proj_config.mk        # 芯片/功能配置（2M flash、WiFi、LVGL…）
 ├── flash.sh              # 一键: 同步UI + 编译 + 选串口/波特率 + 烧录
 ├── sync_gui.sh           # GUI Guider → 项目同步（仅 UI 开发者）
+├── sdk/                  # ⭐ 打好全部补丁的 SDK 源码（工具链/烧录工具是 submodule，首次自动拉）
 ├── Windows烧录/           # Windows 零安装一键烧录（工具全内置）
 ├── serial_tool/          # PC 配套软件（PySide6 源码 + exe）
 │   ├── dist/WB2SerialTool.exe  # ⭐ 日常使用的就是它
@@ -256,9 +255,10 @@ WB2-clock2/
 | 现象 | 解决 |
 |------|------|
 | 烧录卡在等待设备 | 按住 **BOOT** 再按 **RST**，重新进入下载模式 |
-| 图片颜色全错 | `lv_conf.h` 里 `LV_COLOR_16_SWAP` 必须是 **0**（见补丁） |
+| 图片颜色全错 | 正常不会发生 —— 自带 `sdk/` 已内置 `LV_COLOR_16_SWAP 0`；用外部 SDK 才需要自己改 |
 | 连不上 WiFi | 检查 SSID/密码（`cfg_store.c` 默认值 / xcmd 修改） |
-| 编译报 `BL60X_SDK_PATH` 错误 | 检查 SDK 路径（见"搭环境"） |
+| 报 `undefined reference to '_fw_size'` | 用了没打补丁的外部 SDK。删掉 `BL60X_SDK_PATH` 改用自带的 `sdk/`，或按上面补丁表自己同步 |
+| 报「SDK 工具链缺失」 | 首次没拉子模块：`git submodule update --init --recursive` |
 | 设备管理器看不到串口 | 装 **CH340 驱动**，重新插拔 |
 | 报 `BFLB FLASH MATCH TYPE FAIL` | 日志 `readdata: b'xxxxxxxx'` 取前 6 位（如 `5e4016`），在 `Windows烧录/utils/flash/bl602/` 复制一个 `.conf` 改名为 `<型号>_<前6位>.conf` |
 

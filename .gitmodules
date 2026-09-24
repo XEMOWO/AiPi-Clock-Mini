@@ -1,0 +1,9 @@
+[submodule "sdk/toolchain/riscv/Linux"]
+	path = sdk/toolchain/riscv/Linux
+	url = https://e.coding.net/axk/aithinker_wb2/Linux.git
+[submodule "sdk/toolchain/riscv/MSYS"]
+	path = sdk/toolchain/riscv/MSYS
+	url = https://e.coding.net/axk/aithinker_wb2/MSYS.git
+[submodule "sdk/tools/flash_tool"]
+	path = sdk/tools/flash_tool
+	url = https://e.coding.net/axk/aithinker_wb2/flash_tool.git

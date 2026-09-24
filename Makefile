@@ -9,15 +9,24 @@ export PROJECT_PATH PROJECT_BOARD
 
 -include ./proj_config.mk
 
-# SDK 路径解析（发给别人时无需改代码）:
+# SDK 路径解析（仓库自带 sdk/, clone 下来直接能编）:
 #   1. 环境变量 BL60X_SDK_PATH 优先
-#   2. 否则探测上级目录是否是 SDK 树（项目放在 SDK 的 applications/ 下时生效）
-#   3. 都找不到时用下面的兜底路径（本机开发路径；别人用请改这一行或设环境变量）
-ifndef BL60X_SDK_PATH
-BL60X_SDK_PATH ?= $(abspath $(CURDIR)/../../..)
-ifeq ("$(wildcard $(BL60X_SDK_PATH)/make_scripts_riscv/project.mk)","")
-BL60X_SDK_PATH := /home/xemowo/Ai-Thinker-WB2
+#   2. 仓库内置:   <仓库根>/sdk
+#   3. 上级目录:   项目被放进 SDK 的 applications/ 下时生效
+#   4. 都找不到就报错 —— 不再静默指向某台机器的绝对路径, 拖到链接阶段才炸
+ifeq ($(origin BL60X_SDK_PATH),undefined)
+BL60X_SDK_PATH := $(firstword $(foreach d,$(PROJECT_PATH)/sdk $(abspath $(CURDIR)/../../..),$(if $(wildcard $(d)/make_scripts_riscv/project.mk),$(d))))
 endif
+
+ifeq ("$(wildcard $(BL60X_SDK_PATH)/make_scripts_riscv/project.mk)","")
+$(error 找不到可用的 WB2 SDK。若仓库自带的 sdk/ 还在, 先拉子模块: git submodule update --init --recursive ；否则用 BL60X_SDK_PATH=<你的 SDK 路径> 指定)
+endif
+
+# 工具链来自 submodule(约 2GB, 不在仓库里)。目录规则与 make_scripts_riscv/toolchain.mk 一致:
+# toolchain/riscv/$(uname 第一段)/, 即 Linux / MSYS / Darwin
+TOOLCHAIN_GCC := $(BL60X_SDK_PATH)/toolchain/riscv/$(shell uname | cut -d '_' -f1)/bin/riscv64-unknown-elf-gcc
+ifeq ("$(wildcard $(TOOLCHAIN_GCC))$(wildcard $(TOOLCHAIN_GCC).exe)","")
+$(error SDK 工具链缺失: $(TOOLCHAIN_GCC)  首次使用请执行: git submodule update --init --recursive)
 endif
 
 COMPONENTS_NETWORK := sntp dns_server

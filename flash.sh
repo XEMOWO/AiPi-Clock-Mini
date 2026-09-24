@@ -30,6 +30,28 @@ done
 PORT="${ARGS[0]}"
 BAUD="${ARGS[1]}"
 
+# ── SDK 定位 + 工具链自举 ─────────────────────────────────
+# 仓库自带 sdk/ (源码已含全部补丁); 工具链与烧录工具是 submodule, 不在仓库里, 首次要拉
+ROOT="$(pwd)"
+SDK="${BL60X_SDK_PATH:-$ROOT/sdk}"
+if [ ! -f "$SDK/make_scripts_riscv/project.mk" ]; then
+    echo "✘ 找不到 SDK: $SDK"
+    echo "  该目录应随仓库一起拿到; 确实没有的话用环境变量指定: BL60X_SDK_PATH=<你的 SDK 路径> ./flash.sh"
+    exit 1
+fi
+
+if [ ! -d "$SDK/toolchain/riscv/Linux/bin" ] && [ ! -d "$SDK/toolchain/riscv/MSYS/bin" ]; then
+    echo "════════ SDK 工具链未就绪, 首次拉取 (约 2GB, 只需一次) ════════"
+    if [ -d .git ]; then
+        git submodule update --init --recursive || { echo "✘ 工具链拉取失败, 检查网络后重试"; exit 1; }
+    else
+        echo "✘ 当前目录不是 git 仓库(可能是下载的 ZIP), 无法自动拉取工具链"
+        echo "  请改用: git clone https://github.com/XEMOWO/AiPi-Clock-Mini"
+        exit 1
+    fi
+    echo "✔ 工具链就绪"
+fi
+
 TOTAL=3; [ "$SYNC" = 1 ] && TOTAL=4; [ "$BUILD" = 1 ] && TOTAL=$((TOTAL+1))
 STEP=0
 next() { STEP=$((STEP+1)); echo "════════ [$STEP/$TOTAL] $1 ════════"; }
@@ -114,7 +136,6 @@ echo "✔ 波特率: $BAUD"
 # ── 4: 烧录 ───────────────────────────────────────────────
 next "开始烧录"
 # 分区表以项目内为准, 覆盖 SDK 默认 (FW 单段合并, 支持 >864KB 固件)
-SDK="${BL60X_SDK_PATH:-/home/xemowo/Ai-Thinker-WB2}"
 cp Windows烧录/partition_cfg_2M.toml \
    "$SDK/tools/flash_tool/chips/bl602/partition/partition_cfg_2M.toml"
 echo "提示: 如果卡住, 按住 BOOT 键再按一下 RST 重新进入下载模式"
